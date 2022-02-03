@@ -1,19 +1,27 @@
 import {BaseThunkType, InferActionType} from "./store"
+import OrderingSystemApi, {OrderType} from "../Api/OrderingSystemApi";
+import {ResultCodeEnum, ResultCodeTokenEnum} from "../Api/api";
 
 let defaultState = {
-    initialized : false,
-    collapsed: false
+    ordersMany : [] as Array<OrderType>,
+    token: null as null | string,
+    isLogin : false
 }
 
 const OrderingSystemReducer = (state = defaultState, action: ActionType) : defaultStateType => {
     switch (action.type){
-        case "app/Aliaksandr_Andreyeu/INITIALIZED_SUCCESS" :
+        case "orderingSystem/Aliaksandr_Andreyeu/GET_ORDERS_MANY_SUCCESS" :
             return {...state,
-                initialized: true
+                ordersMany: [...action.ordersMany]
             }
-        case "app/Aliaksandr_Andreyeu/TOGGLE_COLLAPSED" :
+        case "orderingSystem/Aliaksandr_Andreyeu/GET_LOGIN_TOKEN_SUCCESS" :
             return {...state,
-                collapsed: action.collapsed
+                token : action.token,
+                isLogin : true
+            }
+        case "orderingSystem/Aliaksandr_Andreyeu/GET_REFRESH_TOKEN_SUCCESS" :
+            return {...state,
+                token : action.token
             }
         default:
             return state
@@ -21,16 +29,49 @@ const OrderingSystemReducer = (state = defaultState, action: ActionType) : defau
 }
 
 export const actions = {
-    setInitialized: () => ({type : 'app/Aliaksandr_Andreyeu/INITIALIZED_SUCCESS'} as const),
-    setToggleCollapsed: (collapsed: boolean) => ({type : 'app/Aliaksandr_Andreyeu/TOGGLE_COLLAPSED', collapsed} as const)
+    setOrdersMany: (ordersMany: Array<OrderType>) => ({type : 'orderingSystem/Aliaksandr_Andreyeu/GET_ORDERS_MANY_SUCCESS', ordersMany} as const),
+    setLoginToken: (token: string) => ({type : 'orderingSystem/Aliaksandr_Andreyeu/GET_LOGIN_TOKEN_SUCCESS', token} as const),
+    setRefreshToken: (token: string) => ({type : 'orderingSystem/Aliaksandr_Andreyeu/GET_REFRESH_TOKEN_SUCCESS', token} as const)
 }
 
-export const initializedApp = ():ThunkType => async (dispatch) => {
-   /* let promise = await dispatch(getAuthUser())
+export const getOrdersManyThunk = ():ThunkType => async (dispatch, getState) => {
+    const token = getState().OrderingSystemReducer.token
+    if(token) {
+        const response = await OrderingSystemApi.getOrdersMany(token)
+        dispatch(actions.setOrdersMany(response.data))
+    }
+}
+export const postRefreshTokenThunk = ():ThunkType => async (dispatch) => {
+    try {
+        const response = await OrderingSystemApi.postRefreshToken()
+        if (response.status === ResultCodeEnum.Success) {
+            dispatch(actions.setRefreshToken(response.data.access_token))
+        } else if (response.status === ResultCodeEnum.Unauthorized) {
+            console.log('не авторизирован')
+        } else if (response.status === ResultCodeEnum.Forbidden) {
+            console.log('запрещённый')
+        } else if (response.status === ResultCodeTokenEnum.ValidationError) {
+            console.log(response)
+        }
+    } catch (e) {
+       console.log(e)
+    }
 
-    await Promise.all([promise]).then(()=>{
-        dispatch(actions.setInitialized())
-    })*/
+}
+export const postRefreshTokenAuthThunk = (username : string, password : string):ThunkType => async (dispatch) => {
+
+    const response = await OrderingSystemApi.postRefreshTokenAuth(username, password)
+    if (response.status === ResultCodeEnum.Success){
+        dispatch(actions.setLoginToken(response.data.access_token))
+    } else if (response.status === ResultCodeEnum.Unauthorized){
+        console.log('не авторизирован')
+    } else if ( response.status === ResultCodeEnum.Forbidden){
+        console.log('запрещённый')
+    } else if (response.status === ResultCodeTokenEnum.ValidationError){
+        console.log(response)
+    }
+
+    // todo:  dispatch(actions.setIsPreloader(false))
 }
 
 

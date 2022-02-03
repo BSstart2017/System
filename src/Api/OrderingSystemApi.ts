@@ -1,42 +1,44 @@
-import {ApiResponseType, instance, ResultCodeCaptchaEnum, ResultCodeEnum} from "./api";
+import {instanceCargoSpeed} from "./api";
 
-const authApi = {
-    getAuthUser() {
-        return instance
-            .get<ApiResponseType<MeResponseDataType>>(`auth/me`)
-            .then((response) => response.data)
+const OrderingSystemApi = {
+    getOrdersMany(token: string) {
+        return instanceCargoSpeed(token)
+            .get<Array<OrderType>>(`demo/api/v1/orders/many`)
+            .then((response) => response)
     },
-    postLogin(
-        email: string,
-        password: string,
-        rememberMe: boolean = false,
-        captcha: string | null = null
-    ) {
-        return instance
-            .post<ApiResponseType<LoginResponseDataType, ResultCodeCaptchaEnum | ResultCodeEnum>>(`auth/login/`, {
-                email,
-                password,
-                rememberMe,
-                captcha
-            })
-            .then((response) => response.data);
+    postRefreshToken() {
+        return instanceCargoSpeed().post<RefreshTokenType>(`demo/api/v1/login/access_token`,'grant_type=refresh_token')
+            .then((response) => response)
     },
-    deleteLogout() {
-        return instance
-            .delete<ApiResponseType<LoginResponseDataType, ResultCodeCaptchaEnum | ResultCodeEnum>>(`auth/login/`)
-            .then((response) => response.data);
-    },
-};
+    postRefreshTokenAuth(username:string, password:string) {
+        return instanceCargoSpeed()
+            .post<RefreshTokenType>(`demo/api/v1/login/access_token`,
+                  `grant_type=password&username=${username}&password=${password}`
+            )
+            .then((response) => response)
+    }
+}
 
-export default authApi;
+export default OrderingSystemApi;
 
+export type OrderType = {
+            id: string
+            order_number: number
+            source: SourceOrderType
+            destination: DestinationOrderType
+            subject: string
+            comment: string
+}
+type DestinationOrderType = {
+    lat: number
+    lon: number
+    time: string
+}
+type SourceOrderType = {
+    lat: number
+    lon: number
+}
 
-export type LoginResponseDataType = {
-    userId: number;
-};
-
-export type MeResponseDataType = {
-    id: number;
-    email: string;
-    login: string;
-};
+type RefreshTokenType = {
+    access_token: string
+}
