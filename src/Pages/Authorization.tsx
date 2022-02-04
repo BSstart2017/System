@@ -1,8 +1,8 @@
 import React, {FC} from "react";
-import Login from "../Components/Login/Login";
 import {useSelector} from "react-redux";
-import {getIsLoginSelector} from "../redux/Selectors/OrderingSystemSelectors";
+import {getIsLoginSelector} from "../redux/Selectors/AuthorizationSelectors";
 import {Redirect} from "react-router-dom";
+import {Login} from "../Components/Login";
 
 
 const Authorization: FC = () => {
@@ -11,11 +11,7 @@ const Authorization: FC = () => {
 
     if (isLogin) return <Redirect to="orderMap/"/>
 
-  return (
-      <>
-          <Login />
-      </>
-  )
+    return <Login />
 }
 
 export default Authorization

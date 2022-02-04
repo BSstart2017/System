@@ -5,4 +5,4 @@ const Preloader: FC = () => {
     return <img src={imgPreloader} alt="NoPhoto"/>
 }
 
-export default Preloader
+export {Preloader}

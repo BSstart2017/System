@@ -1,5 +1,5 @@
 import {BaseThunkType, InferActionType} from "./store"
-import {postRefreshTokenThunk} from "./OrderingSystemReducer";
+import {postRefreshTokenThunk} from "./AuthorizationReducer";
 
 let defaultState = {
     initialized : false
@@ -17,8 +17,7 @@ const appReducer = (state = defaultState, action: ActionType) : defaultStateType
 }
 
 export const actions = {
-    setInitialized: () => ({type : 'app/Aliaksandr_Andreyeu/INITIALIZED_SUCCESS'} as const),
-    setToggleCollapsed: (collapsed: boolean) => ({type : 'app/Aliaksandr_Andreyeu/TOGGLE_COLLAPSED', collapsed} as const)
+    setInitialized: () => ({type : 'app/Aliaksandr_Andreyeu/INITIALIZED_SUCCESS'} as const)
 }
 
 export const initializedApp = ():ThunkType => async (dispatch) => {

@@ -1,10 +1,12 @@
 import { Action, applyMiddleware, combineReducers, compose, createStore } from "redux"
 import thunkMiddleware, {ThunkAction} from "redux-thunk"
-import OrderingSystemReducer from "./OrderingSystemReducer"
+import AuthorizationReducer from "./AuthorizationReducer"
 import appReducer from "./appReducer"
+import OrderMapReducer from './OrderMapReducer'
 
 let rootReducer = combineReducers({
-    OrderingSystemReducer,
+    AuthorizationReducer,
+    OrderMapReducer,
     appReducer
 })
 

@@ -1,91 +1,60 @@
-import React, {ChangeEvent, FC, useEffect} from "react"
-import usePlacesAutocomplete, {
-    getGeocode,
-    getLatLng, Suggestion,
-} from "use-places-autocomplete";
-import useOnclickOutside from "react-cool-onclickoutside";
-import {Input} from "antd";
+import React, {ChangeEvent, FC, useCallback, useEffect} from "react"
+import usePlacesAutocomplete, {getGeocode, getLatLng, Suggestion} from "use-places-autocomplete"
+import useOnclickOutside from "react-cool-onclickoutside"
+import {Input} from "antd"
+import styles from './Autocomplete.module.css'
+import {PositionCenterType} from '../../redux/OrderMapReducer'
 
-const Autocomplete: FC<PropsType> = ({isLoaded}) => {
+const Autocomplete: FC<PropsType> = ({isLoaded, onSelect}) => {
 
-    const {
-        ready,
-        init,
-        value,
-        suggestions: { status, data },
-        setValue,
-        clearSuggestions,
-    } = usePlacesAutocomplete({
-        initOnMount: true,
-        debounce: 300,
-    });
-    const ref = useOnclickOutside(() => {
-        // When user clicks outside of the component, we can dismiss
-        // the searched suggestions by calling this method
-        clearSuggestions();
-    });
+    const {ready, init, value, suggestions: {status, data}, setValue,
+        clearSuggestions} = usePlacesAutocomplete({initOnMount: false,})
 
-    const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
-        // Update the keyword of the input element
-        setValue(e.target.value);
-    };
+    const ref = useOnclickOutside(() => clearSuggestions())
+    const handleInput = useCallback((e: ChangeEvent<HTMLInputElement>) => setValue(e.target.value), [setValue])
 
-    const handleSelect =
-        ({description}: Suggestion) =>
-            () => {
-                // When user selects a place, we can replace the keyword without request data from API
-                // by setting the second parameter to "false"
-                setValue(description, false);
-                console.log(description)
-                clearSuggestions();
+    const handleSelect = useCallback(({description}: Suggestion) => () => {
+        setValue(description, false)
+        clearSuggestions()
 
-                // Get latitude and longitude via utility functions
-                getGeocode({ address: description })
-                    .then((results) => getLatLng(results[0]))
-                    .then(({ lat, lng }) => {
-                        console.log("📍 Coordinates: ", { lat, lng });
-                    })
-                    .catch((error) => {
-                        console.log("😱 Error: ", error);
-                    });
-            };
+        getGeocode({address: description})
+            .then((results) => getLatLng(results[0]))
+            .then(({lat, lng}) => onSelect({lat, lng}))
+            .catch((error) => console.log("😱 Error: ", error))
 
-    const renderSuggestions = () =>
-        data.map((suggestion) => {
+    },[onSelect,setValue, clearSuggestions])
+
+    const renderSuggestions = useCallback(() => {
+        return data.map((suggestion) => {
             const {
                 place_id,
-                structured_formatting: { main_text, secondary_text },
+                structured_formatting: {main_text, secondary_text},
             } = suggestion;
 
             return (
-                <li key={place_id} onClick={handleSelect(suggestion)}>
+                <li className={styles.listItem} key={place_id} onClick={handleSelect(suggestion)}>
                     <strong>{main_text}</strong> <small>{secondary_text}</small>
                 </li>
             );
         })
+    },[data, handleSelect])
 
-    useEffect(()=>{
-        if(isLoaded){
-            init()
-        }
-    },[init,isLoaded])
+    useEffect(() => {
+        if (isLoaded) init()
+    }, [init, isLoaded])
 
     return (
         <div ref={ref}>
-            <Input
-                type={'text'}
-                value={value}
-                onChange={handleInput}
-                disabled={!ready}
-                placeholder="Where are you going?"
-            />
-            {status === "OK" && <ul>{renderSuggestions()}</ul>}
+            <Input type={'text'} value={value} onChange={handleInput} disabled={!ready} placeholder="Where are you going?"/>
+            {status === "OK" && <ul className={styles.suggestions}>{renderSuggestions()}</ul>}
         </div>
-    );
-};
+    )
+}
 
 export {Autocomplete}
 
-type PropsType ={
+type PropsType = {
     isLoaded: boolean
+    onSelect: (position: PositionCenterType) => void
 }
+

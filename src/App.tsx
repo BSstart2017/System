@@ -5,10 +5,10 @@ import {Provider, useDispatch, useSelector} from "react-redux";
 import Authorization from "./Pages/Authorization";
 import OrderMap from "./Pages/OrderMap";
 import { Layout } from "antd";
-import {getIsLoginSelector} from "./redux/Selectors/OrderingSystemSelectors";
-import Preloader from "./Components/Common/Preloader/Preloader";
+import {getIsLoginSelector} from "./redux/Selectors/AuthorizationSelectors";
 import {initializedApp} from "./redux/appReducer";
 import {getInitialized} from "./redux/Selectors/appSelector";
+import {Preloader} from "./Components/Common/Preloader";
 
 const { Content } = Layout;
 
@@ -18,7 +18,7 @@ const App: FC = () => {
 
     useEffect(() => {
         dispatch(initializedApp())
-    })
+    },[dispatch])
 
     if (!initialized){
         return <Preloader/>
@@ -37,7 +37,7 @@ const AppStart : FC = () =>{
                 {isLogin ?
                     <Switch>
                         <Route path="/orderMap" render={() =>  <OrderMap />}/>
-                        <Route path="/" render={() => <Authorization />}/>
+                        <Route exact path="/" render={() => <Authorization />}/>
                         <Route render={() => <div>404 non found</div>}/>
                     </Switch>
                     : <Route path="/" render={() => <Authorization />}/>

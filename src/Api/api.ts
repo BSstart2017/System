@@ -12,20 +12,13 @@ export const instanceCargoSpeed = (token:string | null = null) => {
     })
 }
 
-export const API_KEY_GOOGLE_MAP ='AIzaSyDvpz6xrsQaR4CFbdF-AQ_qFQeMbRXbWrU'
+export const API_KEY ='AIzaSyDvpz6xrsQaR4CFbdF-AQ_qFQeMbRXbWrU'
+//todo: .env API_KEY_GOOGLE_MAP
 
 export enum ResultCodeEnum {
     Success = 200,
     Forbidden = 403,
-    Unauthorized = 401
-}
-
-export enum ResultCodeTokenEnum {
-    ValidationError = 422
-}
-
-export type ApiResponseType<D = {}, RC = ResultCodeEnum> = {
-    data: D
-    status: RC
-    statusText: string
+    Unauthorized = 401,
+    ValidationError = 422,
+    NotFoundError = 404,
 }

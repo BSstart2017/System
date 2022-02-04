@@ -1,0 +1,18 @@
+.container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: cyan;
+}
+
+.formContainer .item {
+    padding: 10px 10px;
+    margin: 10px 10px;
+}
+
+.formContainer button {
+    width: 100%;
+    margin: 10px 10px;
+}
