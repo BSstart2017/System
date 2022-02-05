@@ -4,5 +4,5 @@ import imgPreloader from "./../../../assets/images/preloader.png"
 const Preloader: FC = () => {
     return <img src={imgPreloader} alt="NoPhoto"/>
 }
-
+//todo change img
 export {Preloader}

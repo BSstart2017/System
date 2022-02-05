@@ -1,27 +1,29 @@
 import React, {FC, useCallback, useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {Table, Divider, Button, Col, Row} from 'antd';
-import {OrderType} from "../Api/OrderingSystemApi";
-import {Map} from "../Components/Map";
+import {OrderType} from "../Api/CargoSpeedApi";
+import {MapGoogle} from "../Components/MapGoogle";
 import {useJsApiLoader} from "@react-google-maps/api";
 import {Autocomplete} from "../Components/AutoComplete";
 import {API_KEY} from "../Api/api";
 import {getBrowserLocation} from "../utils/geo";
 import {Preloader} from "../Components/Common/Preloader";
-import {getOrdersManyThunk} from "../redux/OrderMapReducer";
+import {getFindShortestPathThunk, getOrdersManyThunk} from "../redux/OrderMapReducer";
 import {
     getCenterDefaultSelector,
-    getColumnsTableSelector,
+    getColumnsTableSelector, getFindShortestPathSelector,
     getOrdersManySelector
 } from "../redux/Selectors/OrderMapSelectors";
 
+const OrderMapGoogle: FC = () => {
 
-const OrderMap: FC = () => {
     const ordersMany = useSelector(getOrdersManySelector)
     const columnsTable = useSelector(getColumnsTableSelector)
     const centerDefault = useSelector(getCenterDefaultSelector)
+    const findShortestPath = useSelector(getFindShortestPathSelector)
 
     const dispatch = useDispatch()
+
 
     const [selectedRowShortCut, setSelectedRowShortCut] = useState<Array<OrderType>>([])
     const [ libraries ] = useState<("drawing" | "geometry" | "localContext" | "places" | "visualization")[]>
@@ -47,10 +49,11 @@ const OrderMap: FC = () => {
             setSelectedRowShortCut(selectedRows)
         }
     }
-
-    const onTakeShortCut = useCallback(() =>{
+    console.log(findShortestPath)
+    const onTakeShortCut = useCallback( () =>{
+     //  dispatch(getFindShortestPathThunk())
         console.log(selectedRowShortCut)
-    },[selectedRowShortCut])
+    },[selectedRowShortCut, dispatch])
 
     useEffect(()=>{
         getBrowserLocation(centerDefault).then((curLoc)=>{
@@ -73,12 +76,13 @@ const OrderMap: FC = () => {
             </Row>
             {
                 isLoaded
-                ? <Map center={center} ordersMany={ordersMany} myPosition={myPosition}/>
+                ? <MapGoogle center={center} ordersMany={ordersMany} myPosition={myPosition} findShortestPath={findShortestPath}/>
                 : <Preloader/>
             }
         </div>
     )
 }
+//todo read field is Orders Source / Destination https://nominatim.org/release-docs/latest/api/Overview/
 
-export default OrderMap
+export default OrderMapGoogle
 

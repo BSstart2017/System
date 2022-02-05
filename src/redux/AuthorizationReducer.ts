@@ -1,5 +1,5 @@
 import {BaseThunkType, InferActionType} from "./store"
-import OrderingSystemApi from "../Api/OrderingSystemApi";
+import CargoSpeedApi from "../Api/CargoSpeedApi";
 
 let defaultState = {
     token: null as null | string,
@@ -29,7 +29,7 @@ export const actions = {
 
 export const postRefreshTokenThunk = ():ThunkType => async (dispatch) => {
     try {
-        const response = await OrderingSystemApi.postRefreshToken()
+        const response = await CargoSpeedApi.postRefreshToken()
         dispatch(actions.setRefreshToken(response.data.access_token))
     } catch (err : any) {
         console.log(err.message)
@@ -38,7 +38,7 @@ export const postRefreshTokenThunk = ():ThunkType => async (dispatch) => {
 }
 export const postRefreshTokenAuthThunk = (username : string, password : string):ThunkType => async (dispatch) => {
     try {
-        const response = await OrderingSystemApi.postRefreshTokenAuth(username, password)
+        const response = await CargoSpeedApi.postRefreshTokenAuth(username, password)
         dispatch(actions.setLoginToken(response.data.access_token))
     } catch (err : any) {
         console.log(err.message)

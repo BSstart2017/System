@@ -1,13 +1,14 @@
 import React, {FC, useCallback, useRef} from 'react'
-import {GoogleMap, Marker} from "@react-google-maps/api";
+import { GoogleMap, Marker} from "@react-google-maps/api";
 import {Col} from "antd";
-import {OrderType} from "../../Api/OrderingSystemApi";
+import {OrderType} from "../../Api/CargoSpeedApi";
 import imgTaxi from '../../assets/images/taxi_18540.png'
 import imgClient_Taxi from '../../assets/images/Client_Taxi.svg'
 import {PositionCenterType} from "../../redux/OrderMapReducer";
+import {FindShortestPathType} from "../../Api/OSRM_Api";
 
+const MapGoogle: FC<PropsType> = ({center, ordersMany, myPosition, findShortestPath}) => {
 
-const Map: FC<PropsType> = ({center, ordersMany, myPosition}) => {
 
     const mapRef = useRef(undefined)
     const onLoad = useCallback(function callback(map) {
@@ -17,24 +18,28 @@ const Map: FC<PropsType> = ({center, ordersMany, myPosition}) => {
         mapRef.current = undefined
     }, [])
 
-    const clientMap = ordersMany.map(order => ( <div key={order.id}>
+    const clientMap = ordersMany.map((order) => ( <div key={order.id}>
             <Marker title={order.subject} position={{lat:order.source.lat, lng: order.source.lon}}
                     icon={imgClient_Taxi}/>
         </div>))
 
+
     return <Col style={{height: '500px'}}>
             <GoogleMap mapContainerStyle={{width: '100%', height: '100%'}} center={center} zoom={10}
                 onLoad={onLoad} onUnmount={onUnmount}>
+
+                {/* findShortestPath && <DirectionsRenderer directions={findShortestPath} /> */}
                 <Marker title={'It is you'} position={myPosition} icon={imgTaxi}/>
                 { clientMap }
             </GoogleMap>
         </Col>
 }
 
-export {Map}
+export {MapGoogle}
 
 type PropsType = {
     center: PositionCenterType
     ordersMany: Array<OrderType>
     myPosition: PositionCenterType
+    findShortestPath: FindShortestPathType | null
 }
