@@ -1,9 +1,21 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
 import {AppFastTaxiDriver} from './App';
+import * as reactRedux from "react-redux";
+import {render, screen} from "@testing-library/react";
 
-test('renders learn react link', () => {
-  render(<AppFastTaxiDriver />);
-  const linkElement = screen.getByText(/Hello/i);
-  expect(linkElement).toBeInTheDocument();
-});
+
+describe('AppFastTaxiDriver', ()=>{
+
+  const useSelectorMock = jest.spyOn(reactRedux, 'useSelector')
+
+  it('AboutMe render initialized true',async ()=>{
+    useSelectorMock.mockReturnValueOnce(true)
+    render(<AppFastTaxiDriver/>)
+  })
+
+  it('AboutMe render initialized false',  ()=>{
+    useSelectorMock.mockReturnValue(false)
+    render(<AppFastTaxiDriver/>)
+    expect(screen.getByRole('img')).toBeInTheDocument()
+  })
+})

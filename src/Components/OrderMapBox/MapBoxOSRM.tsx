@@ -11,15 +11,12 @@ import {FC, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import imgTaxi from '../../assets/images/taxi_18540.png'
 import imgClient_Taxi from '../../assets/images/Client_Taxi.png'
+import imgHome from '../../assets/images/Home.png'
 import {useDispatch, useSelector} from "react-redux";
 import {getDataSourceOSRMSelector} from "../../redux/Selectors/OrderMapSelectors";
-import {OrderType} from "../../Api/CargoSpeedApi";
-import {actions} from "../../redux/OrderMapReducer";
+import {actions, OrdersManyDataTableType} from "../../redux/OrderMapReducer";
 
-//todo: .env
-//todo: optimization
-
-const MapBoxOSRM: FC<PropsType> = ({ordersMany, activeClient, selectClient}) => {
+const MapBoxOSRM: FC<PropsType> = ({ordersMany, selectClient}) => {
 
     const dispatch = useDispatch()
 
@@ -41,16 +38,24 @@ const MapBoxOSRM: FC<PropsType> = ({ordersMany, activeClient, selectClient}) => 
         dispatch(actions.setGeoTaxiPath({lat: evt.coords.latitude, lon: evt.coords.longitude }))
     },[dispatch])
 
-    const orderMarker = useMemo(() => ordersMany.map(order => (
+    const orderMarkerClient = useMemo(() => ordersMany.map(order => (
         <Marker key={order.id} longitude={order.source.lon} latitude={order.source.lat} anchor="bottom">
             <img src={imgClient_Taxi} alt={imgTaxi}/>
         </Marker>
     )), [ordersMany])
 
+    const orderMarkerHomeSelect = useMemo(() => (
+        <Marker key={selectClient?.id} longitude={selectClient?.destination.lon} latitude={selectClient?.destination.lat} anchor="bottom">
+            <img src={imgHome} alt={imgTaxi}/>
+        </Marker>
+    ), [selectClient])
+
+
     return (
         <Map onLoad={onLoadHandle} mapboxAccessToken={process.env.REACT_APP_API_KEY_MAPBOX} style={{width: '100%', height: 600}}
                 mapStyle="mapbox://styles/mapbox/streets-v8">
-            {ordersMany && orderMarker}
+            {ordersMany && orderMarkerClient}
+            {selectClient && ordersMany && orderMarkerHomeSelect}
             { selectClient && <>
                 <Source id='route' type='geojson' data={dataSourceOSRMS}/>
                 <Layer id='route' type='line' source='route' layout={{'line-join': 'round', 'line-cap': 'round'}}
@@ -67,7 +72,6 @@ const MapBoxOSRM: FC<PropsType> = ({ordersMany, activeClient, selectClient}) => 
 export {MapBoxOSRM}
 
 type PropsType = {
-    ordersMany: Array<OrderType>
-    activeClient: OrderType | null
-    selectClient: OrderType | null
+    ordersMany: Array<OrdersManyDataTableType>
+    selectClient: OrdersManyDataTableType | null
 }

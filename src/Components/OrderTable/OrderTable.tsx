@@ -1,43 +1,41 @@
-import React, {FC, useCallback, useState} from "react";
-import {Button, Col, Divider, Row, Table} from "antd";
-import {OrderType} from "../../Api/CargoSpeedApi";
-import {actions, getFindShortestPathThunk} from "../../redux/OrderMapReducer";
+import React, {FC, useCallback, useEffect} from "react";
+import {Col, Divider, Row, Table} from "antd";
+import {actions, getFindShortestPathThunk, OrdersManyDataTableType} from "../../redux/OrderMapReducer";
 import {useDispatch, useSelector} from "react-redux";
 import {
+    getAllPathSelector,
     getColumnsTableSelector,
-    getGeoTaxiSelector, getStepsClientToDestinationPathSelector,
-    getStepsTaxiToClientPathSelector
+    getGeoTaxiSelector,
 } from "../../redux/Selectors/OrderMapSelectors";
+import {ButtonPanel} from "./ButtonPanel";
 import {Position} from "geojson";
-
 
 const OrderTable : FC<PropsType> = ({ordersMany, selectClient, activeClient}) => {
 
     const dispatch = useDispatch()
-//todo:reselect
+
     const columnsTable = useSelector(getColumnsTableSelector)
     const geoTaxi = useSelector(getGeoTaxiSelector)
-    const taxiToClientPath = useSelector(getStepsTaxiToClientPathSelector)
-    const clientToDestinationPath = useSelector(getStepsClientToDestinationPathSelector)
+    const allPath = useSelector(getAllPathSelector)
 
-    const [fulfillingAnOrder, setFulfillingAnOrder] = useState<boolean>(false)
+    useEffect(()=>{
+        if(selectClient){
+        dispatch(getFindShortestPathThunk({
+            taxiGeo: geoTaxi ,
+            clientSource: {lat: selectClient.source.lat, lon: selectClient.source.lon} ,
+            clientDestination: {lat: selectClient.destination.lat, lon: selectClient.destination.lon}
+        }))
+        }
+    },[dispatch, selectClient, geoTaxi])
 
-    const taxiToClient = taxiToClientPath?.map(step => step.maneuver.location)
-    const clientToDestination = clientToDestinationPath?.map(step => step.maneuver.location)
-    const allPath = [...[taxiToClient].flat(1), ...[clientToDestination].flat(1)]
+    useEffect(()=>{
+        dispatch(actions.setDataSourceOSRM(allPath as Position[]))
+    }, [dispatch,allPath])
 
     const rowSelection = {
-        onChange: useCallback( (selectedRowKeys: React.Key[], selectedRows: OrderType[]) => {
-            dispatch(actions.setSelectClientPath(selectedRows[0]))
-            dispatch(getFindShortestPathThunk({
-               taxiGeo: geoTaxi ,
-               clientSource: selectedRows[0].source ,
-               clientDestination: {lat: selectedRows[0].destination.lat, lon: selectedRows[0].destination.lon}
-               }))
-            if(taxiToClient) {
-                dispatch(actions.setDataSourceOSRM(taxiToClient))
-            }
-        },[dispatch, geoTaxi, taxiToClient]),
+        onChange: (selectedRowKeys: React.Key[], selectedRows: OrdersManyDataTableType[]) => {
+                       dispatch(actions.setSelectClientPath(selectedRows[0]))
+        },
 
         getCheckboxProps: useCallback(() => {
             if(activeClient) {
@@ -46,16 +44,7 @@ const OrderTable : FC<PropsType> = ({ordersMany, selectClient, activeClient}) =>
         },[activeClient])
     }
 
-    const onTakeShortCut = useCallback( () =>{
-        if(selectClient){
-            dispatch(actions.setActiveClientPath(selectClient))
-        }
-        setFulfillingAnOrder(true)
-    },[dispatch,selectClient])
-    const onCanselShortCut = useCallback( () =>{
-        dispatch(actions.setDeleteActiveClientPath())
-        setFulfillingAnOrder(false)
-    },[dispatch])
+
 
     return (
         <Row>
@@ -63,26 +52,19 @@ const OrderTable : FC<PropsType> = ({ordersMany, selectClient, activeClient}) =>
                 <Divider orientation="left">Select order</Divider>
                 <Table loading={ordersMany.length === 0} rowKey={record => record.id} rowSelection={{type: 'radio', ...rowSelection}}
                        pagination={false} columns={columnsTable} dataSource={ordersMany}/>
-                <Row justify={"end"} style={{paddingTop: 15,paddingBottom: 15, paddingRight: 20 }}>
-                    <Col>
-                        <Button disabled={fulfillingAnOrder || selectClient === null} style={{width: 200}}
-                                type={"primary"} onClick={onTakeShortCut}>I will fulfill the order</Button>
-                    </Col>
-                    <Col style={{paddingLeft:20}}>
-                        <Button style={{width: 200}} type={"primary"} onClick={onCanselShortCut}
-                                disabled={!fulfillingAnOrder} danger>Cancel order</Button>
-                    </Col>
-                </Row>
+                <ButtonPanel selectClient={selectClient} activeClient={activeClient}/>
             </Col>
         </Row>
 
     )
 }
-//todo read field is Orders Source / Destination https://nominatim.org/release-docs/latest/api/Overview/
+
+
+
 export {OrderTable}
 
 type PropsType = {
-    ordersMany: Array<OrderType>
-    selectClient: OrderType | null
-    activeClient: OrderType | null
+    ordersMany: Array<OrdersManyDataTableType>
+    selectClient: OrdersManyDataTableType | null
+    activeClient: OrdersManyDataTableType | null
 }

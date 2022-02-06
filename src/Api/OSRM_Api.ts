@@ -1,4 +1,4 @@
-import { instanceOSRM, ResultCodeEnum} from "./api";
+import {instanceOSRM, ResultCodeEnum} from "./api";
 import {SourceOrderType} from "./CargoSpeedApi";
 
 

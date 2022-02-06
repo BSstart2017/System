@@ -17,6 +17,10 @@ export const instanceOSRM = axios.create({
         baseURL: `https://router.project-osrm.org/${defaultRequestsOSRM}`
 })
 
+export const instanceNominatim = axios.create({
+    baseURL: `https://nominatim.openstreetmap.org/`
+})
+
 export enum ResultCodeEnum {
     Success = 200,
     Forbidden = 403,

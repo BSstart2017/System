@@ -1,7 +1,6 @@
 import React, {FC, useCallback, useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {Table, Divider, Button, Col, Row} from 'antd';
-import {OrderType} from "../Api/CargoSpeedApi";
+import {Divider, Col, Row} from 'antd';
 import {MapGoogle} from "../Components/MapGoogle";
 import {useJsApiLoader} from "@react-google-maps/api";
 import {Autocomplete} from "../Components/AutoComplete";
@@ -9,28 +8,23 @@ import {getBrowserLocation} from "../utils/geo";
 import {Preloader} from "../Components/Common/Preloader";
 import { getOrdersManyThunk} from "../redux/OrderMapReducer";
 import {
-    getCenterDefaultSelector,
-    getColumnsTableSelector, getFindShortestPathSelector,
+    getCenterDefaultSelector, getFindShortestPathSelector,
     getOrdersManySelector
 } from "../redux/Selectors/OrderMapSelectors";
 
 const OrderMapGoogle: FC = () => {
 
     const ordersMany = useSelector(getOrdersManySelector)
-    const columnsTable = useSelector(getColumnsTableSelector)
     const centerDefault = useSelector(getCenterDefaultSelector)
     const findShortestPath = useSelector(getFindShortestPathSelector)
 
     const dispatch = useDispatch()
 
-
-    const [selectedRowShortCut, setSelectedRowShortCut] = useState<Array<OrderType>>([])
     const [ libraries ] = useState<("drawing" | "geometry" | "localContext" | "places" | "visualization")[]>
     (["places" ,"drawing" , "geometry" , "localContext" ,"visualization"])
 
     const [center, setCenter] = useState(centerDefault)
     const [myPosition, setMyPosition] = useState(centerDefault)
-    //todo:actions
 
     const onPlaceSelect = useCallback((coordinates) => setCenter(coordinates),[])
     const { isLoaded } = useJsApiLoader({
@@ -42,17 +36,6 @@ const OrderMapGoogle: FC = () => {
     useEffect(() => {
         if(ordersMany.length === 0 ) dispatch(getOrdersManyThunk())
     },[dispatch, ordersMany])
-
-    const rowSelection = {
-        onChange: (selectedRowKeys: React.Key[], selectedRows: OrderType[]) => {
-            setSelectedRowShortCut(selectedRows)
-        }
-    }
-    console.log(findShortestPath)
-    const onTakeShortCut = useCallback( () =>{
-     //  dispatch(getFindShortestPathThunk())
-        console.log(selectedRowShortCut)
-    },[selectedRowShortCut, dispatch])
 
     useEffect(()=>{
         getBrowserLocation(centerDefault).then((curLoc)=>{
@@ -67,12 +50,13 @@ const OrderMapGoogle: FC = () => {
     return (
         <div>
             <Divider orientation="left">Select order</Divider>
-            <Table rowKey={record => record.id} rowSelection={{type: 'radio', ...rowSelection}}
-                pagination={false} columns={columnsTable} dataSource={ordersMany}/>
-            <Button type={"primary"} onClick={onTakeShortCut}>Go</Button>
             <Row justify={"center"}>
                 <Col span={8}><Autocomplete isLoaded={isLoaded} onSelect={onPlaceSelect}/></Col>
             </Row>
+            <div><h2>
+                Google api for finding a short path is paid.
+Tried to bypass. By getting the short path data with osrm and converting the object to be rendered in the DirectionsRenderer component
+            </h2></div>
             {
                 isLoaded
                 ? <MapGoogle center={center} ordersMany={ordersMany} myPosition={myPosition} findShortestPath={findShortestPath}/>
@@ -81,7 +65,6 @@ const OrderMapGoogle: FC = () => {
         </div>
     )
 }
-//todo read field is Orders Source / Destination https://nominatim.org/release-docs/latest/api/Overview/
 
 export default OrderMapGoogle
 

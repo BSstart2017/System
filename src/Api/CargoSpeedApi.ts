@@ -1,7 +1,7 @@
 import {instanceCargoSpeed, ResultCodeEnum} from "./api";
 
 const CargoSpeedApi = {
-    getOrdersMany(token: string) {
+    getOrdersMany(token: string)  {
         return instanceCargoSpeed(token)
             .get<Array<OrderType> & ErrorResponseType>(`demo/api/v1/orders/many`)
             .then((response) => response).catch(err => {
@@ -70,7 +70,7 @@ export type OrderType = {
     comment: string
 }
 
-type DestinationOrderType = {
+export type DestinationOrderType = {
     lat: number
     lon: number
     time: string
