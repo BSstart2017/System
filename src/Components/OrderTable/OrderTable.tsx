@@ -3,34 +3,47 @@ import {Button, Col, Divider, Row, Table} from "antd";
 import {OrderType} from "../../Api/CargoSpeedApi";
 import {actions, getFindShortestPathThunk} from "../../redux/OrderMapReducer";
 import {useDispatch, useSelector} from "react-redux";
-import {getColumnsTableSelector, getGeoTaxiSelector} from "../../redux/Selectors/OrderMapSelectors";
+import {
+    getColumnsTableSelector,
+    getGeoTaxiSelector, getStepsClientToDestinationPathSelector,
+    getStepsTaxiToClientPathSelector
+} from "../../redux/Selectors/OrderMapSelectors";
+import {Position} from "geojson";
 
 
 const OrderTable : FC<PropsType> = ({ordersMany, selectClient, activeClient}) => {
 
     const dispatch = useDispatch()
-
+//todo:reselect
     const columnsTable = useSelector(getColumnsTableSelector)
     const geoTaxi = useSelector(getGeoTaxiSelector)
+    const taxiToClientPath = useSelector(getStepsTaxiToClientPathSelector)
+    const clientToDestinationPath = useSelector(getStepsClientToDestinationPathSelector)
 
     const [fulfillingAnOrder, setFulfillingAnOrder] = useState<boolean>(false)
 
+    const taxiToClient = taxiToClientPath?.map(step => step.maneuver.location)
+    const clientToDestination = clientToDestinationPath?.map(step => step.maneuver.location)
+    const allPath = [...[taxiToClient].flat(1), ...[clientToDestination].flat(1)]
+
     const rowSelection = {
-        onChange: (selectedRowKeys: React.Key[], selectedRows: OrderType[]) => {
+        onChange: useCallback( (selectedRowKeys: React.Key[], selectedRows: OrderType[]) => {
             dispatch(actions.setSelectClientPath(selectedRows[0]))
             dispatch(getFindShortestPathThunk({
                taxiGeo: geoTaxi ,
                clientSource: selectedRows[0].source ,
                clientDestination: {lat: selectedRows[0].destination.lat, lon: selectedRows[0].destination.lon}
-               })
-           )
-        },
-        getCheckboxProps: (record: OrderType) => { if(activeClient) {
-            return ({
-                disabled: true
-            })
+               }))
+            if(taxiToClient) {
+                dispatch(actions.setDataSourceOSRM(taxiToClient))
+            }
+        },[dispatch, geoTaxi, taxiToClient]),
+
+        getCheckboxProps: useCallback(() => {
+            if(activeClient) {
+            return ({disabled: true})
         }else {return ({})}
-        }
+        },[activeClient])
     }
 
     const onTakeShortCut = useCallback( () =>{
@@ -39,7 +52,6 @@ const OrderTable : FC<PropsType> = ({ordersMany, selectClient, activeClient}) =>
         }
         setFulfillingAnOrder(true)
     },[dispatch,selectClient])
-
     const onCanselShortCut = useCallback( () =>{
         dispatch(actions.setDeleteActiveClientPath())
         setFulfillingAnOrder(false)

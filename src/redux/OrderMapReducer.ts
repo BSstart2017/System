@@ -2,6 +2,7 @@ import {BaseThunkType, InferActionType} from "./store"
 import CargoSpeedApi, {OrderType, SourceOrderType} from "../Api/CargoSpeedApi";
 import {ColumnsType} from "antd/es/table";
 import OSRMApi, {CoordinatesPathType, FindShortestPathType} from "../Api/OSRM_Api";
+import {Feature, Position} from "geojson";
 
 let defaultState = {
     ordersMany : [] as Array<OrderType>,
@@ -31,7 +32,15 @@ let defaultState = {
     findShortestPath : null as FindShortestPathType | null,
     geoTaxi: {lat: 52.13, lon: 21.02} as SourceOrderType,
     selectClient : null as null | OrderType,
-    activeClient : null as null | OrderType
+    activeClient : null as null | OrderType,
+    dataSourceOSRM: {
+    type: 'Feature',
+    geometry: {
+        type: 'LineString',
+        coordinates: [] as Position[]
+    },
+    properties: {}
+} as Feature
 }
 
 const OrderMapReducer = (state = defaultState, action: ActionType) : defaultStateType => {
@@ -60,6 +69,15 @@ const OrderMapReducer = (state = defaultState, action: ActionType) : defaultStat
             return {...state,
                 selectClient: {...action.selectClient}
             }
+        case "orderMapReducer/Aliaksandr_Andreyeu/SET_DATA_SOURCE_OSRM_SUCCESS" :
+           debugger
+            return {...state,
+                dataSourceOSRM: {...state.dataSourceOSRM,
+                    geometry : { ...state.dataSourceOSRM.geometry,
+                        //@ts-ignore
+                    coordinates: [...action.coordinatesFindPath] as Position[]
+                    } }
+            }
         default:
             return state
     }
@@ -71,7 +89,8 @@ export const actions = {
     setGeoTaxiPath: (geoTaxi:SourceOrderType) => ({type : 'orderMapReducer/Aliaksandr_Andreyeu/SET_GEO_TAXI_SUCCESS', geoTaxi} as const),
     setActiveClientPath: (activeClient:OrderType) => ({type : 'orderMapReducer/Aliaksandr_Andreyeu/SET_ACTIVE_CLIENT_SUCCESS', activeClient} as const),
     setSelectClientPath: (selectClient:OrderType) => ({type : 'orderMapReducer/Aliaksandr_Andreyeu/SET_SELECT_CLIENT_SUCCESS', selectClient} as const),
-    setDeleteActiveClientPath: () => ({type : 'orderMapReducer/Aliaksandr_Andreyeu/SET_DELETE_ACTIVE_CLIENT_SUCCESS'} as const)
+    setDeleteActiveClientPath: () => ({type : 'orderMapReducer/Aliaksandr_Andreyeu/SET_DELETE_ACTIVE_CLIENT_SUCCESS'} as const),
+    setDataSourceOSRM: (coordinatesFindPath: Position[]) => ({type : "orderMapReducer/Aliaksandr_Andreyeu/SET_DATA_SOURCE_OSRM_SUCCESS", coordinatesFindPath} as const)
 }
 
 export const getOrdersManyThunk = ():ThunkType => async (dispatch, getState) => {

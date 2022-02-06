@@ -5,10 +5,9 @@ import {OrderType} from "../Api/CargoSpeedApi";
 import {MapGoogle} from "../Components/MapGoogle";
 import {useJsApiLoader} from "@react-google-maps/api";
 import {Autocomplete} from "../Components/AutoComplete";
-import {API_KEY} from "../Api/api";
 import {getBrowserLocation} from "../utils/geo";
 import {Preloader} from "../Components/Common/Preloader";
-import {getFindShortestPathThunk, getOrdersManyThunk} from "../redux/OrderMapReducer";
+import { getOrdersManyThunk} from "../redux/OrderMapReducer";
 import {
     getCenterDefaultSelector,
     getColumnsTableSelector, getFindShortestPathSelector,
@@ -36,7 +35,7 @@ const OrderMapGoogle: FC = () => {
     const onPlaceSelect = useCallback((coordinates) => setCenter(coordinates),[])
     const { isLoaded } = useJsApiLoader({
         id: 'google-map-script',
-        googleMapsApiKey: API_KEY,
+        googleMapsApiKey: process.env.REACT_APP_API_KEY_GOOGLE_MAP as string,
         libraries
     })
 
